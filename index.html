@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNAPSE | Weaver of Reality</title>
+    <meta name="description" content="A kinetic physics-platformer where you weave a persistent web of memories.">
+    <!-- SVG Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='black'/><circle cx='50' cy='50' r='30' stroke='%2300f2ff' stroke-width='5' fill='none'/><circle cx='50' cy='50' r='10' fill='%23ff00e5'/></svg>">
+    <link rel="stylesheet" href="index.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div class="scanning-line"></div>
+
+        <!-- HUD -->
+        <div class="ui-overlay">
+            <div id="top-hud" class="panel">
+                <div class="stat">
+                    <span class="stat-label">Memory Shards</span>
+                    <span id="stat-score" class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Distance</span>
+                    <span id="stat-distance" class="stat-value">0m</span>
+                </div>
+                <div class="stat">
+                    <span id="stat-combo" class="stat-value" style="color: var(--accent-magenta); opacity: 0;">x0</span>
+                </div>
+                <div class="stat" style="text-align: right;">
+                    <span class="stat-label">Connections</span>
+                    <span id="stat-connections" class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div id="bottom-hud" style="display: flex; justify-content: center;">
+                <!-- Additional UI if needed -->
+            </div>
+        </div>
+
+        <!-- Start Menu -->
+        <div id="menu-overlay">
+            <div class="menu-card panel">
+                <h1>SYNAPSE</h1>
+                <p class="subtitle">The Mindscape is fragmented. Connect it.</p>
+                <button id="start-btn" class="btn-primary">Initialize Impulse</button>
+
+                <div class="instructions">
+                    <p><kbd>W/A/S/D</kbd> : Move Impulse</p>
+                    <p><kbd>Left Click Hold</kbd> : Fire Synapse Tether</p>
+                    <p><kbd>Right Click</kbd> : **Impulse Dash** (Towards mouse)</p>
+                    <p><kbd>Space</kbd> : Dissolve all threads</p>
+                    <p><em>Hint: Collect pink shards for massive score combos.</em></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Logic -->
+    <script src="index.js"></script>
+</body>
+
+</html>
