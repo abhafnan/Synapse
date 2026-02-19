@@ -83,7 +83,7 @@ class SynapseGame {
             x: 0,
             y: 0,
             targetX: 0,
-            lerp: 0.1
+            lerp: 0.08
         };
 
         this.player = {
@@ -96,20 +96,21 @@ class SynapseGame {
             activeTether: null,
             swinging: false,
             dashCooldown: 0,
-            trail: []
+            trail: [],
+            lastSafeNode: null
         };
 
         // Procedural Gen State
         this.lastGeneratedX = 0;
-        this.GEN_DISTANCE = 1000;
+        this.GEN_DISTANCE = 1200;
 
-        // Constants
-        this.GRAVITY = 0.25;
+        // EASY MODE CONSTANTS
+        this.GRAVITY = 0.15; // Lower gravity for slower falling
         this.FRICTION = 0.98;
-        this.TETHER_STIFFNESS = 0.18;
-        this.NODE_COUNT = 18;
-        this.MOVE_SPEED = 0.6;
-        this.MAX_REACH = 450;
+        this.TETHER_STIFFNESS = 0.22; // Stronger pull
+        this.NODE_COUNT = 15; // More nodes per chunk
+        this.MOVE_SPEED = 0.9; // Faster keyboard movement (Air control)
+        this.MAX_REACH = 600; // Much longer reach
 
         // Input
         this.mouse = { x: 0, y: 0, down: false };
@@ -193,20 +194,21 @@ class SynapseGame {
         const dy = worldMouseY - this.player.y;
         const angle = Math.atan2(dy, dx);
 
-        this.player.vx += Math.cos(angle) * 16;
-        this.player.vy += Math.sin(angle) * 16;
-        this.player.dashCooldown = 35;
+        this.player.vx += Math.cos(angle) * 18;
+        this.player.vy += Math.sin(angle) * 18;
+        this.player.dashCooldown = 20; // Fast cooldown
         this.screenShake = 6;
         this.createExplosion(this.player.x, this.player.y, '#fff', 15);
     }
 
     generateChunk(startX) {
-        const width = 1000;
-        for (let i = 0; i < 8; i++) {
+        const width = 1200;
+        const nodeDensity = 12; // More nodes makes it easier
+        for (let i = 0; i < nodeDensity; i++) {
             this.nodes.push({
                 x: startX + Math.random() * width,
-                y: Math.random() * (this.canvas.height - 300) + 150,
-                radius: 12 + Math.random() * 15,
+                y: Math.random() * (this.canvas.height - 250) + 125,
+                radius: 14 + Math.random() * 15,
                 hue: Math.random() * 60 + 180,
                 pulse: 0
             });
@@ -356,8 +358,16 @@ class SynapseGame {
         this.particles = this.particles.filter(p => p.life > 0);
 
         // Ground death / reset
-        if (this.player.y > this.canvas.height + 200) {
-            this.start(); // For now just reset
+        if (this.player.y > this.canvas.height + 400) {
+            // Safety Net: If you fall, we just reset you to the top of the screen at your current X
+            // but take some score away as a penalty
+            this.score = Math.max(0, this.score - 500);
+            this.player.y = -100;
+            this.player.vy = 0;
+            this.player.vx *= 0.5;
+            this.screenShake = 15;
+            this.combo = 0;
+            this.updateUI();
         }
     }
 
