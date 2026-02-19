@@ -71,6 +71,7 @@ class SynapseGame {
         this.threads = [];
         this.particles = [];
         this.shards = [];
+        this.platforms = []; // Added for the 'table' platform
         this.score = 0;
         this.combo = 0;
         this.comboTimer = 0;
@@ -83,12 +84,12 @@ class SynapseGame {
             x: 0,
             y: 0,
             targetX: 0,
-            lerp: 0.08
+            lerp: 0.1
         };
 
         this.player = {
-            x: 100,
-            y: 0,
+            x: 200,
+            y: 300,
             vx: 0,
             vy: 0,
             radius: 8,
@@ -265,9 +266,20 @@ class SynapseGame {
         this.nodes = [];
         this.shards = [];
         this.threads = [];
+        this.platforms = [];
         this.lastGeneratedX = 0;
+
+        // Spawn the "Starting Table"
+        this.platforms.push({
+            x: 50,
+            y: this.canvas.height / 2 + 50,
+            width: 300,
+            height: 20,
+            color: 'rgba(255, 255, 255, 0.15)'
+        });
+
         this.player.x = 200;
-        this.player.y = this.canvas.height / 2;
+        this.player.y = this.canvas.height / 2 - 20;
         this.player.vx = 0;
         this.player.vy = 0;
         this.camera.x = 0;
@@ -302,6 +314,20 @@ class SynapseGame {
         // Persistent thread collision
         for (const thread of this.threads) {
             this.resolveThreadCollision(thread);
+        }
+
+        // Platform collision (The "Table")
+        for (const plat of this.platforms) {
+            if (this.player.x + this.player.radius > plat.x &&
+                this.player.x - this.player.radius < plat.x + plat.width &&
+                this.player.y + this.player.radius > plat.y &&
+                this.player.y - this.player.radius < plat.y + plat.height) {
+
+                if (this.player.vy > 0 && this.player.y < plat.y + 10) {
+                    this.player.y = plat.y - this.player.radius;
+                    this.player.vy = 0;
+                }
+            }
         }
 
         this.player.vx *= this.FRICTION;
@@ -410,6 +436,18 @@ class SynapseGame {
 
         // Apply Camera
         this.ctx.translate(-this.camera.x, -this.camera.y);
+
+        // Draw Platforms (The Table)
+        for (const plat of this.platforms) {
+            this.ctx.fillStyle = plat.color;
+            this.ctx.shadowBlur = 15;
+            this.ctx.shadowColor = 'white';
+            this.ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+            // Table legs for extra "Table-ness"
+            this.ctx.fillRect(plat.x + 10, plat.y + plat.height, 5, 400);
+            this.ctx.fillRect(plat.x + plat.width - 15, plat.y + plat.height, 5, 400);
+            this.ctx.shadowBlur = 0;
+        }
 
         // Grid Background (Parallax feel)
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
