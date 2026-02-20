@@ -118,10 +118,37 @@ class SynapseGame {
         this.keys = {};
         this.initInput();
 
+        // Mobile Controls State
+        this.joystick = {
+            active: false,
+            baseX: 0,
+            baseY: 0,
+            currentX: 0,
+            currentY: 0,
+            vectorX: 0,
+            vectorY: 0,
+            maxDist: 60
+        };
+
         // UI
         this.startBtn = document.getElementById('start-btn');
         this.menu = document.getElementById('menu-overlay');
+        this.initMobileControls();
+
         this.startBtn.addEventListener('click', () => this.start());
+
+        const fullScreenBtn = document.getElementById('fullscreen-btn');
+        fullScreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                fullScreenBtn.innerText = 'EXIT FULLSCREEN';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    fullScreenBtn.innerText = 'FULLSCREEN';
+                }
+            }
+        });
 
         requestAnimationFrame((t) => this.loop(t));
     }
@@ -178,6 +205,103 @@ class SynapseGame {
         window.addEventListener('keyup', (e) => this.keys[e.code] = false);
     }
 
+    initMobileControls() {
+        // Joystick
+        const joystickZone = document.getElementById('joystick-zone');
+        const joystickHandle = document.getElementById('joystick-handle');
+
+        const updateJoystick = (e) => {
+            if (!this.joystick.active) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - this.joystick.baseX;
+            const dy = touch.clientY - this.joystick.baseY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const limitedDist = Math.min(dist, this.joystick.maxDist);
+            const angle = Math.atan2(dy, dx);
+
+            this.joystick.currentX = Math.cos(angle) * limitedDist;
+            this.joystick.currentY = Math.sin(angle) * limitedDist;
+
+            this.joystick.vectorX = this.joystick.currentX / this.joystick.maxDist;
+            this.joystick.vectorY = this.joystick.currentY / this.joystick.maxDist;
+
+            joystickHandle.style.transform = `translate(${this.joystick.currentX}px, ${this.joystick.currentY}px)`;
+        };
+
+        joystickZone.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.joystick.active = true;
+            const rect = joystickZone.getBoundingClientRect();
+            this.joystick.baseX = rect.left + rect.width / 2;
+            this.joystick.baseY = rect.top + rect.height / 2;
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            if (this.joystick.active) {
+                e.preventDefault();
+                updateJoystick(e);
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => {
+            this.joystick.active = false;
+            this.joystick.vectorX = 0;
+            this.joystick.vectorY = 0;
+            joystickHandle.style.transform = `translate(0,0)`;
+        });
+
+        // Action Buttons
+        document.getElementById('mobile-dash').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.tryDash();
+        });
+
+        document.getElementById('mobile-dissolve').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.dissolveThreads();
+        });
+
+        // Canvas Tethering (Touch)
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (!this.running || this.joystick.active) return;
+            const touch = e.touches[0];
+            this.mouse.x = touch.clientX;
+            this.mouse.y = touch.clientY;
+            this.mouse.down = true;
+            this.tryTether();
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (!this.running || this.joystick.active) return;
+            const touch = e.touches[0];
+            this.mouse.x = touch.clientX;
+            this.mouse.y = touch.clientY;
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchend', () => {
+            if (this.player.activeTether) {
+                this.threads.push({
+                    startNode: this.player.activeTether.node,
+                    endX: this.player.x,
+                    endY: this.player.y,
+                    color: 'rgba(0, 242, 255, 0.4)',
+                    life: 1.0
+                });
+                this.createExplosion(this.player.x, this.player.y, '#00f2ff', 5);
+            }
+            this.mouse.down = false;
+            this.player.activeTether = null;
+            this.player.swinging = false;
+        });
+    }
+
+    dissolveThreads() {
+        this.threads = this.threads.slice(-5);
+        this.createExplosion(this.player.x, this.player.y, '#fff', 20);
+        this.screenShake = 10;
+        this.updateUI();
+    }
+
     createExplosion(x, y, color, count) {
         for (let i = 0; i < count; i++) {
             this.particles.push(new Particle(x, y, color));
@@ -187,17 +311,21 @@ class SynapseGame {
     tryDash() {
         if (this.player.dashCooldown > 0) return;
 
-        // Convert mouse world pos
-        const worldMouseX = this.mouse.x + this.camera.x;
-        const worldMouseY = this.mouse.y + this.camera.y;
-
-        const dx = worldMouseX - this.player.x;
-        const dy = worldMouseY - this.player.y;
-        const angle = Math.atan2(dy, dx);
+        let angle;
+        if (this.joystick.active && (Math.abs(this.joystick.vectorX) > 0.1 || Math.abs(this.joystick.vectorY) > 0.1)) {
+            angle = Math.atan2(this.joystick.vectorY, this.joystick.vectorX);
+        } else {
+            // Convert mouse world pos
+            const worldMouseX = this.mouse.x + this.camera.x;
+            const worldMouseY = this.mouse.y + this.camera.y;
+            const dx = worldMouseX - this.player.x;
+            const dy = worldMouseY - this.player.y;
+            angle = Math.atan2(dy, dx);
+        }
 
         this.player.vx += Math.cos(angle) * 18;
         this.player.vy += Math.sin(angle) * 18;
-        this.player.dashCooldown = 20; // Fast cooldown
+        this.player.dashCooldown = 20;
         this.screenShake = 6;
         this.createExplosion(this.player.x, this.player.y, '#fff', 15);
     }
@@ -291,9 +419,9 @@ class SynapseGame {
         if (!this.running) return;
 
         // Player Controls
-        if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.player.vx -= this.MOVE_SPEED;
-        if (this.keys['KeyD'] || this.keys['ArrowRight']) this.player.vx += this.MOVE_SPEED;
-        if (this.keys['KeyW'] || this.keys['ArrowUp']) this.player.vy -= this.MOVE_SPEED * 0.5;
+        if (this.keys['KeyA'] || this.keys['ArrowLeft'] || this.joystick.vectorX < -0.3) this.player.vx -= this.MOVE_SPEED;
+        if (this.keys['KeyD'] || this.keys['ArrowRight'] || this.joystick.vectorX > 0.3) this.player.vx += this.MOVE_SPEED;
+        if (this.keys['KeyW'] || this.keys['ArrowUp'] || this.joystick.vectorY < -0.3) this.player.vy -= this.MOVE_SPEED * 0.5;
 
         this.player.vy += this.GRAVITY;
         this.player.dashCooldown = Math.max(0, this.player.dashCooldown - 1);

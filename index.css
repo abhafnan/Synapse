@@ -173,6 +173,22 @@ h1 {
     box-shadow: 0 0 20px var(--accent-cyan);
 }
 
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    border-color: #fff;
+    color: #fff;
+}
+
 .instructions {
     margin-top: 2rem;
     text-align: left;
@@ -225,5 +241,117 @@ kbd {
 
     100% {
         transform: translateY(100vh);
+    }
+}
+
+/* Mobile Controls Styling */
+.mobile-only {
+    display: none;
+    pointer-events: none;
+}
+
+@media (max-width: 1024px) or (pointer: coarse) {
+    .mobile-only {
+        display: flex;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 2rem;
+        justify-content: space-between;
+        align-items: flex-end;
+        pointer-events: none;
+        z-index: 50;
+    }
+
+    #joystick-zone {
+        width: 150px;
+        height: 150px;
+        pointer-events: auto;
+    }
+
+    #joystick-base {
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #joystick-handle {
+        width: 50px;
+        height: 50px;
+        background: var(--accent-cyan);
+        border-radius: 50%;
+        box-shadow: 0 0 15px var(--accent-cyan);
+        transition: transform 0.1s ease-out;
+    }
+
+    #action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        pointer-events: auto;
+    }
+
+    .btn-action {
+        background: var(--glass-bg);
+        border: 2px solid var(--accent-cyan);
+        color: var(--accent-cyan);
+        padding: 1.2rem;
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        font-weight: 700;
+        font-size: 0.7rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-action:active {
+        transform: scale(0.9);
+        background: var(--accent-cyan);
+        color: #000;
+    }
+
+    #mobile-dissolve {
+        border-color: var(--accent-magenta);
+        color: var(--accent-magenta);
+        width: 65px;
+        height: 65px;
+        font-size: 0.6rem;
+    }
+
+    #mobile-dissolve:active {
+        background: var(--accent-magenta);
+        color: #fff;
+    }
+
+    #top-hud {
+        gap: 0.5rem;
+        padding: 0.8rem;
+    }
+
+    .stat-value {
+        font-size: 1rem;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    .instructions {
+        display: none;
+        /* Hide keyboard instructions on mobile */
     }
 }

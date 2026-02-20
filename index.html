@@ -41,8 +41,21 @@
                 </div>
             </div>
 
-            <div id="bottom-hud" style="display: flex; justify-content: center;">
-                <!-- Additional UI if needed -->
+            <div id="bottom-hud" style="display: flex; justify-content: center; pointer-events: auto;">
+                <button id="fullscreen-btn" class="btn-secondary mobile-only">FULLSCREEN</button>
+            </div>
+
+            <!-- Mobile Controls -->
+            <div id="mobile-controls" class="mobile-only">
+                <div id="joystick-zone">
+                    <div id="joystick-base">
+                        <div id="joystick-handle"></div>
+                    </div>
+                </div>
+                <div id="action-buttons">
+                    <button id="mobile-dash" class="btn-action">DASH</button>
+                    <button id="mobile-dissolve" class="btn-action">DISSOLVE</button>
+                </div>
             </div>
         </div>
 
